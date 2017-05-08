@@ -221,8 +221,6 @@ example
         }
         ...
     ]
-    student : (id of corresponding student)
-    node_homework : (id of corresponding homework)
 }
 
 example
@@ -238,8 +236,6 @@ example
 			"question": 4
 		}
 	],
-	"student": "1234",
-	"node_homework": 4
 }
 
 + Response 403

@@ -99,6 +99,7 @@ def set_homework_answer(request):
         serializer.save()
         return Response(status=status.HTTP_200_OK)
     else:
+        msg = serializer.errors
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -117,7 +118,10 @@ def get_homework_answer(request,node_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
     node_homeworkanswer = node_homeworkanswers[0]
     serializer = HomeworkAnswerSerializer(instance=node_homeworkanswer)
-    return Response(serializer.data,status=status.HTTP_200_OK)
+    result_data = serializer.data
+    result_data.pop('student',None)
+    result_data.pop('node_homework',None)
+    return Response(result_data,status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
