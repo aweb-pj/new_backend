@@ -4,10 +4,11 @@ import os
 
 
 def get_file_path(instance, filename):
-    ext = filename.split('.')[-1]
-    filename = "%s.%s" % (uuid.uuid4(), ext)
+    base = os.path.basename(filename)
+    filename,ext = os.path.splitext(base)
+    # ext = filename.split('.')[-1]
+    filename = "%s.%s" % (str(uuid.uuid4())+filename, ext)
     return os.path.join('materials', filename)
-# Create your models here.
 
 
 class User(models.Model):
@@ -44,11 +45,11 @@ class NodeMaterial(models.Model):
 class Material(models.Model):
     id = models.AutoField(primary_key=True)
     node_material = models.ForeignKey('NodeMaterial',on_delete=models.CASCADE,related_name='materials')
-    material_name = models.CharField(max_length=100)
-    material_file = models.FileField(upload_to=get_file_path, blank=True, null=True)
+    # material_name = models.CharField(max_length=100)
+    material_file = models.FileField(upload_to=get_file_path)
 
     def __str__(self):
-        return self.material_name
+        return 'selfpk:'+str(self.id)
 
 
 class Question(models.Model):

@@ -10,15 +10,22 @@
 }
 
 + Response 201
+
 created
+
 {}
 
 + Response 409
+
 id confliction
+
 {}
 
 + Response 400
+
 other kind of error
+
+{}
 
 ## Login [/login] [POST]
 
@@ -96,12 +103,11 @@ no tree
     detail:login first
 }
 
-## Set Homework [/homework] [POST]
+## Set Homework [/node/<node_id>/homework] [POST]
 
 + Request
 
 {
-    node_id : (id of the node of homework)
     published : (true or false)
     questions:[
         {
@@ -159,7 +165,7 @@ example
     detail:login first
 }
 
-## Get Homework [/homework] [GET]
+## Get Homework [/node/<node_id>/homework] [GET]
 
 + Request
 {}
@@ -259,7 +265,6 @@ example
 + Request
 
 {
-	"node_id": 4,
 	"answers": [
 		{
 			"answer": "aaaaaaaaaaaaa",
@@ -300,7 +305,7 @@ no corresponding homework
     detail:login first
 }
 
-## Get Material List of a Node [/materials/(node_id)] [GET]
+## Get Material List of a Node [/node/<node_id>/materials] [GET]
 
 + Request
 
@@ -312,15 +317,15 @@ no corresponding homework
 	"materials": [
 		{
 			"id": 1,
-			"material_name": "pic1"
+			"material_file": "materials/4c68b62e-d25f-48bb-b811-011744cea1baScreenshot_from_2017-04-27_03-41-13..png"
 		},
 		{
 			"id": 2,
-			"material_name": "233333333"
+			"material_file": "materials/acd37ddc-35a0-4c0d-9186-3276c93d282bScreenshot_from_2017-04-28_20-50-31..png"
 		},
 		{
 			"id": 3,
-			"material_name": "6666666666"
+			"material_file": "materials/df19e32f-bd80-42db-9e09-5b38f9ba925cScreenshot_from_2017-05-11_19-53-59..png"
 		}
 	],
 	"id": 1
@@ -336,28 +341,45 @@ no corresponding homework
 
 {}
 
-## Add a material [materials] [POST]
+## Upload Material [/node/<node_id>/material] [POST]
 
 + Request
+
+post the file
+
+{}
+
++ Response 201
+
+{}
+
++ Response 400
+
+no file attached
+
+{}
+
++ Response 403
 
 {
-	node_id (id of corresponding node)
-	material_name (char max 100)
+    detail:user not teacher
 }
 
-## Get a file [/downloadfile/(material_id)] [GET]
++ Response 403
+
+{
+    detail:login first
+}
+
+## Download Material [/node/<node_id>/material/<material_id>] [POST]
 
 + Request
 
 {}
 
-+ Response 
++ Response 200
 
-download file as an attachment
-
-{}
-
-+ Response 404
+download file as attachment
 
 {}
 
@@ -367,3 +389,8 @@ download file as an attachment
     detail:login first
 }
 
++ Response 404
+
+no corresponding material
+ 
+{}

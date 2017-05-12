@@ -52,7 +52,7 @@ class MaterialSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Material
-        fields = ('id','material_name')
+        fields = ('id','material_file')
         read_only_fields = ('id',)
 
 

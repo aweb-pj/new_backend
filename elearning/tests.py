@@ -115,9 +115,8 @@ class MyTests(APITestCase):
 
     def test_homework(self):
         self.Register()
-        url = '/homework'
+        url = '/node/1/homework'
         homework = {
-            "node_id":1,
             "published":False,
             "questions":[
                 {
@@ -163,7 +162,7 @@ class MyTests(APITestCase):
         response = self.client.post(url,data=homework)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # test get homework
-        url = url+'/'+str(homework['node_id'])
+        # url = url+'/'+str(homework['node_id'])
         response = self.client.get(url)
         self.assertEqual(response.status_code,status.HTTP_200_OK)
         result_homework = json.loads(json.dumps(homework))
@@ -173,12 +172,12 @@ class MyTests(APITestCase):
             order += 1
         for question in response.data['questions']:
             question.pop('id', None)
+        result_homework['node_id'] = 1
         self.assertEqual(response.data,result_homework)
 
     def CreateHomework(self,node_id):
         self.LoginAsTeacher()
         homework = {
-            "node_id": node_id,
             "published": False,
             "questions": [
                 {
@@ -219,16 +218,15 @@ class MyTests(APITestCase):
                 },
             ]
         }
-        url = '/homework'
+        url = '/node/{}/homework'.format(node_id)
         response = self.client.post(url,data=homework)
         self.assertEqual(response.status_code,status.HTTP_200_OK)
         self.Logout()
 
     def test_homework_answer(self):
         self.Register()
-        url = '/homework_answer'
+        url = '/node/1/homeworkanswer'
         homework_answer = {
-            "node_id": 4,
             "answers": [
                 {
                     "answer": "aaaaaaaaaaaaa",
@@ -253,15 +251,18 @@ class MyTests(APITestCase):
             ]
         }
         # create a homework for testing
-        self.CreateHomework(homework_answer['node_id'])
+        self.CreateHomework(1)
         # test set homework answer
         self.LoginAsStudent()
         response = self.client.post(url, homework_answer)
         self.assertEqual(response.status_code,status.HTTP_200_OK)
         # test get homework answer
-        url = url + '/' + str(homework_answer['node_id'])
+        # url = url + '/' + str(homework_answer['node_id'])
         response = self.client.get(url)
         self.assertEqual(response.status_code,status.HTTP_200_OK)
         self.assertEqual(response.data,expected_result)
+
+    def test_material(self):
+        pass
 
 

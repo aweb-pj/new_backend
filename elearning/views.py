@@ -1,9 +1,11 @@
 from django.http import HttpResponse
 from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import *
 from rest_framework.response import Response
 from rest_framework import status,generics
 from rest_framework.exceptions import PermissionDenied
 from elearning.serializers import *
+from rest_framework.views import APIView
 import json
 import os
 # Create your views here.
@@ -79,153 +81,142 @@ def tree(request):
         return Response(status=status.HTTP_200_OK)
 
 
-@api_view(['POST'])
-def set_homework_answer(request):
-    input_data = request.data
-    if 'node_id' not in input_data:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-    if 'role' not in request.session or 'id' not in request.session:
-        raise PermissionDenied('login first')
-    if request.session['role'] != 'STUDENT':
-        raise PermissionDenied('user not student')
-    node_homeworks = NodeHomework.objects.filter(node_id=input_data['node_id'])
-    if not node_homeworks.exists():
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    node_homework = node_homeworks[0]
-    input_data['node_homework'] = node_homework.id
-    input_data['student'] = request.session['id']
-    serializer = HomeworkAnswerSerializer(data=input_data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(status=status.HTTP_200_OK)
-    else:
-        msg = serializer.errors
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+class HomeworkAnswerView(APIView):
+
+    def get(self,request,node_id):
+        if 'role' not in request.session or 'id' not in request.session:
+            raise PermissionDenied('login first')
+        if request.session['role'] != 'STUDENT':
+            raise PermissionDenied('user not student')
+        node_homeworks = NodeHomework.objects.filter(node_id=node_id)
+        if not node_homeworks.exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        node_homework = node_homeworks[0]
+        node_homeworkanswers = HomeworkAnswer.objects.filter(node_homework=node_homework).filter(
+            student=request.session['id'])
+        if not node_homeworkanswers.exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        node_homeworkanswer = node_homeworkanswers[0]
+        serializer = HomeworkAnswerSerializer(instance=node_homeworkanswer)
+        result_data = serializer.data
+        result_data.pop('student', None)
+        result_data.pop('node_homework', None)
+        return Response(result_data, status=status.HTTP_200_OK)
+
+    def post(self,request,node_id):
+        input_data = request.data
+        input_data['node_id'] = str(node_id)
+        # if 'node_id' not in input_data:
+        #     return Response(status=status.HTTP_400_BAD_REQUEST)
+        if 'role' not in request.session or 'id' not in request.session:
+            raise PermissionDenied('login first')
+        if request.session['role'] != 'STUDENT':
+            raise PermissionDenied('user not student')
+        node_homeworks = NodeHomework.objects.filter(node_id=node_id)
+        if not node_homeworks.exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        node_homework = node_homeworks[0]
+        input_data['node_homework'] = node_homework.id
+        input_data['student'] = request.session['id']
+        serializer = HomeworkAnswerSerializer(data=input_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
-def get_homework_answer(request,node_id):
-    if 'role' not in request.session or 'id' not in request.session:
-        raise PermissionDenied('login first')
-    if request.session['role'] != 'STUDENT':
-        raise PermissionDenied('user not student')
-    node_homeworks = NodeHomework.objects.filter(node_id=node_id)
-    if not node_homeworks.exists():
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    node_homework = node_homeworks[0]
-    node_homeworkanswers = HomeworkAnswer.objects.filter(node_homework=node_homework).filter(student=request.session['id'])
-    if not node_homeworkanswers.exists():
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    node_homeworkanswer = node_homeworkanswers[0]
-    serializer = HomeworkAnswerSerializer(instance=node_homeworkanswer)
-    result_data = serializer.data
-    result_data.pop('student',None)
-    result_data.pop('node_homework',None)
-    return Response(result_data,status=status.HTTP_200_OK)
+class HomeworkView(APIView):
+    def get(self,request,node_id):
+        if 'role' not in request.session or 'id' not in request.session:
+            raise PermissionDenied('login first')
+        node_homeworks = NodeHomework.objects.filter(node_id=node_id)
+        if not node_homeworks.exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        node_homework = node_homeworks[0]
+        serializer = NodeHomeworkSerializer(instance=node_homework)
+        result_data = serializer.data
+        result_data['questions'] = sorted(result_data['questions'], key=lambda k: k['order'])
+        return Response(result_data, status=status.HTTP_200_OK)
 
-
-@api_view(['POST'])
-def set_homework(request):
-    input_data = request.data
-    if 'node_id' not in input_data:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-    if 'role' not in request.session or 'id' not in request.session:
-        raise PermissionDenied('login first')
-    if request.session['role'] != 'TEACHER':
-        raise PermissionDenied('user not teacher')
-    node_homeworks = NodeHomework.objects.filter(node_id=input_data['node_id'])
-    if node_homeworks.exists():
-        node_homeworks[0].delete()
-    order = 0
-    for question in input_data['questions']:
-        question['order'] = order
-        order = order + 1
-    serializer = NodeHomeworkSerializer(data=input_data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(status=status.HTTP_200_OK)
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET'])
-def get_homework(request,node_id):
-    if 'role' not in request.session or 'id' not in request.session:
-        raise PermissionDenied('login first')
-    node_homeworks = NodeHomework.objects.filter(node_id=node_id)
-    if not node_homeworks.exists():
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    node_homework = node_homeworks[0]
-    serializer = NodeHomeworkSerializer(instance=node_homework)
-    result_data = serializer.data
-    result_data['questions'] = sorted(result_data['questions'],key = lambda k:k['order'])
-    return Response(result_data,status=status.HTTP_200_OK)
-
-
-@api_view(['GET'])
-def download_material(request,material_id):
-    if 'role' not in request.session or 'id' not in request.session:
-        raise PermissionDenied('login first')
-    materials = Material.objects.filter(id=material_id)
-    if materials.exists():
-        material = materials[0]
-        response = HttpResponse(status=status.HTTP_200_OK)
-        full_path = os.path.join('', str(material.material_file))
-        filename, file_extension = os.path.splitext(full_path)
-        response['Content-Disposition'] = 'attachment;filename=' + material.material_name + file_extension
-        if os.path.exists(full_path):
-            response['Content-Length'] = os.path.getsize(full_path)
-            content = open(full_path, 'rb').read()
-            response.write(content)
-            return response
-    return Response(status=status.HTTP_404_NOT_FOUND)
+    def post(self,request,node_id):
+        input_data = request.data
+        input_data['node_id'] = str(node_id)
+        # if 'node_id' not in input_data:
+        #     return Response(status=status.HTTP_400_BAD_REQUEST)
+        if 'role' not in request.session or 'id' not in request.session:
+            raise PermissionDenied('login first')
+        if request.session['role'] != 'TEACHER':
+            raise PermissionDenied('user not teacher')
+        node_homeworks = NodeHomework.objects.filter(node_id=node_id)
+        if node_homeworks.exists():
+            node_homeworks[0].delete()
+        order = 0
+        for question in input_data['questions']:
+            question['order'] = order
+            order = order + 1
+        serializer = NodeHomeworkSerializer(data=input_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
 def get_materials(request,node_id):
     if 'role' not in request.session or 'id' not in request.session:
         raise PermissionDenied('login first')
-    node_materials = NodeMaterial.objects.filter(node_id=node_id)
-    if not node_materials.exists():
+    node_material = NodeMaterial.objects.get(node_id=node_id)
+    if not node_material:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    node_material = node_materials[0]
     serializer = NodeMaterialSerializer(instance=node_material)
     return Response(serializer.data,status=status.HTTP_200_OK)
 
 
-@api_view(['POST'])
-def create_material(request):
-    input_data = request.data
-    if 'node_id' not in input_data:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-    if 'role' not in request.session or 'id' not in request.session:
-        raise PermissionDenied('login first')
-    if request.session['role'] != 'TEACHER':
-        raise PermissionDenied('user not teacher')
-    node_materials = NodeMaterial.objects.filter(node_id=input_data['node_id'])
-    if not node_materials.exists():
-        node_material = NodeMaterial(node_id=input_data['node_id'])
-    else:
-        node_material = node_materials[0]
-    node_material.save()
-    material_name = input_data['material_name']
-    material = Material(material_name=material_name,node_material=node_material)
-    material.save()
-    return Response(status=status.HTTP_201_CREATED)
+class MaterialFileUploadView(APIView):
+    parser_classes = (FormParser,MultiPartParser)
+
+    def post(self, request,node_id):
+        if 'role' not in request.session or 'id' not in request.session:
+            raise PermissionDenied('login first')
+        if request.session['role'] != 'TEACHER':
+            raise PermissionDenied('user not teacher')
+        file_name = None
+        for key in request.FILES:
+            file_name = key
+        if not file_name:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        file_obj = request.FILES[file_name]
+        node_materials = NodeMaterial.objects.filter(node_id=node_id)
+        if not node_materials.exists():
+            node_material = NodeMaterial(node_id=node_id)
+        else:
+            node_material = node_materials[0]
+        node_material.save()
+        material = Material(material_file=file_obj, node_material=node_material)
+        material.save()
+        return Response(status=status.HTTP_201_CREATED)
 
 
-# @api_view(['PUT'])
-# @parser_classes(['FileUploadParser'])
-# def upload_material(request,material_id):
-#     if 'role' not in request.session or 'id' not in request.session:
-#         raise PermissionDenied('login first')
-#     if request.session['role'] != 'TEACHER':
-#         raise PermissionDenied('user not teacher')
-#     material = Material.objects.filter(id=material_id)
-#     if not material.exists():
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#     material = material[0]
-#     upload_file = request.FILES['file']
-#     pass
-#     material.material_file = upload_file
-#     return Response(status=status.HTTP_200_OK)
+class MaterialFileDownloadView(APIView):
+
+    def get(self,request,material_id,node_id):
+        if 'role' not in request.session or 'id' not in request.session:
+            raise PermissionDenied('login first')
+        material = Material.objects.get(id=material_id)
+        if material is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        response = HttpResponse(status=status.HTTP_200_OK)
+        full_path = os.path.join('', str(material.material_file))
+        base = os.path.basename(full_path)
+        filename, file_extension = os.path.splitext(base)
+        uuid_length = 36
+        filename = filename[uuid_length:]
+        response['Content-Disposition'] = 'attachment;filename=' + filename + file_extension
+        if os.path.exists(full_path):
+            response['Content-Length'] = os.path.getsize(full_path)
+            content = open(full_path, 'rb').read()
+            response.write(content)
+            return response
+        return Response(status=status.HTTP_404_NOT_FOUND)
