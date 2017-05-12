@@ -371,7 +371,7 @@ no file attached
     detail:login first
 }
 
-## Download Material [/node/<node_id>/material/<material_id>] [POST]
+## Download Material [/node/<node_id>/material/<material_id>] [GET]
 
 + Request
 
