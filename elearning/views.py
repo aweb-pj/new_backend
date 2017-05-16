@@ -56,8 +56,9 @@ def register(request):
 
 @api_view(['GET','POST'])
 def tree(request):
-    if 'role' not in request.session:
-        raise PermissionDenied("login first")
+    # check login
+    # if 'role' not in request.session:
+    #     raise PermissionDenied("login first")
     if request.method == 'GET':
         trees = Tree.objects.all()
         if not trees.exists():
@@ -84,10 +85,12 @@ def tree(request):
 class HomeworkAnswerView(APIView):
 
     def get(self,request,node_id):
-        if 'role' not in request.session or 'id' not in request.session:
-            raise PermissionDenied('login first')
-        if request.session['role'] != 'STUDENT':
-            raise PermissionDenied('user not student')
+
+        # if 'role' not in request.session or 'id' not in request.session:
+        #     raise PermissionDenied('login first')
+        # if request.session['role'] != 'STUDENT':
+        #     raise PermissionDenied('user not student')
+
         node_homeworks = NodeHomework.objects.filter(node_id=node_id)
         if not node_homeworks.exists():
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -104,14 +107,16 @@ class HomeworkAnswerView(APIView):
         return Response(result_data, status=status.HTTP_200_OK)
 
     def post(self,request,node_id):
+
         input_data = request.data
         input_data['node_id'] = str(node_id)
         # if 'node_id' not in input_data:
         #     return Response(status=status.HTTP_400_BAD_REQUEST)
-        if 'role' not in request.session or 'id' not in request.session:
-            raise PermissionDenied('login first')
-        if request.session['role'] != 'STUDENT':
-            raise PermissionDenied('user not student')
+        # if 'role' not in request.session or 'id' not in request.session:
+        #     raise PermissionDenied('login first')
+        # if request.session['role'] != 'STUDENT':
+        #     raise PermissionDenied('user not student')
+
         node_homeworks = NodeHomework.objects.filter(node_id=node_id)
         if not node_homeworks.exists():
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -128,8 +133,10 @@ class HomeworkAnswerView(APIView):
 
 class HomeworkView(APIView):
     def get(self,request,node_id):
-        if 'role' not in request.session or 'id' not in request.session:
-            raise PermissionDenied('login first')
+
+        # if 'role' not in request.session or 'id' not in request.session:
+        #     raise PermissionDenied('login first')
+
         node_homeworks = NodeHomework.objects.filter(node_id=node_id)
         if not node_homeworks.exists():
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -140,14 +147,13 @@ class HomeworkView(APIView):
         return Response(result_data, status=status.HTTP_200_OK)
 
     def post(self,request,node_id):
+
         input_data = request.data
         input_data['node_id'] = str(node_id)
-        # if 'node_id' not in input_data:
-        #     return Response(status=status.HTTP_400_BAD_REQUEST)
-        if 'role' not in request.session or 'id' not in request.session:
-            raise PermissionDenied('login first')
-        if request.session['role'] != 'TEACHER':
-            raise PermissionDenied('user not teacher')
+        # if 'role' not in request.session or 'id' not in request.session:
+        #     raise PermissionDenied('login first')
+        # if request.session['role'] != 'TEACHER':
+        #     raise PermissionDenied('user not teacher')
         node_homeworks = NodeHomework.objects.filter(node_id=node_id)
         if node_homeworks.exists():
             node_homeworks[0].delete()
@@ -165,8 +171,10 @@ class HomeworkView(APIView):
 
 @api_view(['GET'])
 def get_materials(request,node_id):
-    if 'role' not in request.session or 'id' not in request.session:
-        raise PermissionDenied('login first')
+
+    # if 'role' not in request.session or 'id' not in request.session:
+    #     raise PermissionDenied('login first')
+
     node_material = NodeMaterial.objects.get(node_id=node_id)
     if not node_material:
         return Response(status=status.HTTP_404_NOT_FOUND)
@@ -178,10 +186,12 @@ class MaterialFileUploadView(APIView):
     parser_classes = (FormParser,MultiPartParser)
 
     def post(self, request,node_id):
-        if 'role' not in request.session or 'id' not in request.session:
-            raise PermissionDenied('login first')
-        if request.session['role'] != 'TEACHER':
-            raise PermissionDenied('user not teacher')
+
+        # if 'role' not in request.session or 'id' not in request.session:
+        #     raise PermissionDenied('login first')
+        # if request.session['role'] != 'TEACHER':
+        #     raise PermissionDenied('user not teacher')
+
         file_name = None
         for key in request.FILES:
             file_name = key
@@ -202,8 +212,10 @@ class MaterialFileUploadView(APIView):
 class MaterialFileDownloadView(APIView):
 
     def get(self,request,material_id,node_id):
-        if 'role' not in request.session or 'id' not in request.session:
-            raise PermissionDenied('login first')
+
+        # if 'role' not in request.session or 'id' not in request.session:
+        #     raise PermissionDenied('login first')
+
         material = Material.objects.get(id=material_id)
         if material is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
