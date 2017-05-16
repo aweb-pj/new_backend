@@ -1,14 +1,23 @@
 from django.http import HttpResponse
-from rest_framework.decorators import api_view, parser_classes
+from rest_framework.decorators import api_view
 from rest_framework.parsers import *
 from rest_framework.response import Response
-from rest_framework import status,generics
-from rest_framework.exceptions import PermissionDenied
+from rest_framework import status
 from elearning.serializers import *
 from rest_framework.views import APIView
 import json
 import os
 # Create your views here.
+
+
+def check_login(request,roles):
+    session_data = request.session
+    if 'role' not in session_data or 'id' not in session_data:
+        return False
+    role = session_data['role']
+    if role not in roles:
+        return False
+    return True
 
 
 @api_view(['POST'])
@@ -56,10 +65,13 @@ def register(request):
 
 @api_view(['GET','POST'])
 def tree(request):
-    # check login
-    # if 'role' not in request.session:
-    #     raise PermissionDenied("login first")
+
+    # roles = ['TEACHER','STUDENT']
+    # if not check_login(request,roles):
+    #     return Response(status=status.HTTP_403_FORBIDDEN)
+
     if request.method == 'GET':
+
         trees = Tree.objects.all()
         if not trees.exists():
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -67,9 +79,13 @@ def tree(request):
             tree = trees[0]
             tree_str = tree.tree
             return Response(data=json.loads(tree_str), status=status.HTTP_200_OK)
-    else:
-        if request.session['role'] != 'TEACHER':
-            raise PermissionDenied('user not teacher')
+
+    elif request.method == 'POST':
+
+        # roles = ['TEACHER']
+        # if not check_login(request, roles):
+        #     return Response(status=status.HTTP_403_FORBIDDEN)
+
         input_data = json.dumps(request.data)
         trees = Tree.objects.all()
         if not trees.exists():
@@ -86,10 +102,9 @@ class HomeworkAnswerView(APIView):
 
     def get(self,request,node_id):
 
-        # if 'role' not in request.session or 'id' not in request.session:
-        #     raise PermissionDenied('login first')
-        # if request.session['role'] != 'STUDENT':
-        #     raise PermissionDenied('user not student')
+        # roles = ['TEACHER', 'STUDENT']
+        # if not check_login(request, roles):
+        #     return Response(status=status.HTTP_403_FORBIDDEN)
 
         node_homeworks = NodeHomework.objects.filter(node_id=node_id)
         if not node_homeworks.exists():
@@ -110,12 +125,10 @@ class HomeworkAnswerView(APIView):
 
         input_data = request.data
         input_data['node_id'] = str(node_id)
-        # if 'node_id' not in input_data:
-        #     return Response(status=status.HTTP_400_BAD_REQUEST)
-        # if 'role' not in request.session or 'id' not in request.session:
-        #     raise PermissionDenied('login first')
-        # if request.session['role'] != 'STUDENT':
-        #     raise PermissionDenied('user not student')
+
+        # roles = ['STUDENT']
+        # if not check_login(request, roles):
+        #     return Response(status=status.HTTP_403_FORBIDDEN)
 
         node_homeworks = NodeHomework.objects.filter(node_id=node_id)
         if not node_homeworks.exists():
@@ -134,8 +147,9 @@ class HomeworkAnswerView(APIView):
 class HomeworkView(APIView):
     def get(self,request,node_id):
 
-        # if 'role' not in request.session or 'id' not in request.session:
-        #     raise PermissionDenied('login first')
+        # roles = ['TEACHER', 'STUDENT']
+        # if not check_login(request, roles):
+        #     return Response(status=status.HTTP_403_FORBIDDEN)
 
         node_homeworks = NodeHomework.objects.filter(node_id=node_id)
         if not node_homeworks.exists():
@@ -150,10 +164,11 @@ class HomeworkView(APIView):
 
         input_data = request.data
         input_data['node_id'] = str(node_id)
-        # if 'role' not in request.session or 'id' not in request.session:
-        #     raise PermissionDenied('login first')
-        # if request.session['role'] != 'TEACHER':
-        #     raise PermissionDenied('user not teacher')
+
+        # roles = ['TEACHER']
+        # if not check_login(request, roles):
+        #     return Response(status=status.HTTP_403_FORBIDDEN)
+
         node_homeworks = NodeHomework.objects.filter(node_id=node_id)
         if node_homeworks.exists():
             node_homeworks[0].delete()
@@ -172,8 +187,9 @@ class HomeworkView(APIView):
 @api_view(['GET'])
 def get_materials(request,node_id):
 
-    # if 'role' not in request.session or 'id' not in request.session:
-    #     raise PermissionDenied('login first')
+    # roles = ['TEACHER', 'STUDENT']
+    # if not check_login(request, roles):
+    #     return Response(status=status.HTTP_403_FORBIDDEN)
 
     node_material = NodeMaterial.objects.get(node_id=node_id)
     if not node_material:
@@ -187,10 +203,9 @@ class MaterialFileUploadView(APIView):
 
     def post(self, request,node_id):
 
-        # if 'role' not in request.session or 'id' not in request.session:
-        #     raise PermissionDenied('login first')
-        # if request.session['role'] != 'TEACHER':
-        #     raise PermissionDenied('user not teacher')
+        # roles = ['TEACHER']
+        # if not check_login(request, roles):
+        #     return Response(status=status.HTTP_403_FORBIDDEN)
 
         file_name = None
         for key in request.FILES:
@@ -213,8 +228,9 @@ class MaterialFileDownloadView(APIView):
 
     def get(self,request,material_id,node_id):
 
-        # if 'role' not in request.session or 'id' not in request.session:
-        #     raise PermissionDenied('login first')
+        # roles = ['TEACHER', 'STUDENT']
+        # if not check_login(request, roles):
+        #     return Response(status=status.HTTP_403_FORBIDDEN)
 
         material = Material.objects.get(id=material_id)
         if material is None:

@@ -90,16 +90,19 @@ class MyTests(APITestCase):
     def test_get_set_tree(self):
         self.Register()
         url = '/tree'
+
         # test get without login
         # response = self.client.get(url)
         # self.assertEqual(response.status_code,status.HTTP_403_FORBIDDEN)
+
         # test get without a tree
         self.LoginAsStudent()
         response = self.client.get(url)
         self.assertEqual(response.status_code,status.HTTP_404_NOT_FOUND)
         self.Logout()
-        self.LoginAsTeacher()
+
         # test set tree
+        self.LoginAsTeacher()
         data = {
             # anything will do
             "msg":"klsjdfl",
@@ -108,12 +111,14 @@ class MyTests(APITestCase):
         }
         response = self.client.post(url,data=data)
         self.assertEqual(response.status_code,status.HTTP_200_OK)
+
         # test get tree
         response = self.client.get(url)
         self.assertEqual(response.data,data)
         self.Logout()
 
     def test_homework(self):
+
         self.Register()
         url = '/node/1/homework'
         homework = {
@@ -157,15 +162,17 @@ class MyTests(APITestCase):
                 },
             ]
         }
+
         # test set homework
         self.LoginAsTeacher()
         response = self.client.post(url,data=homework)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
         # test get homework
-        # url = url+'/'+str(homework['node_id'])
         response = self.client.get(url)
         self.assertEqual(response.status_code,status.HTTP_200_OK)
         result_homework = json.loads(json.dumps(homework))
+        # response homework data has order and id
         order = 0
         for question in result_homework['questions']:
             question['order'] = order
@@ -257,7 +264,6 @@ class MyTests(APITestCase):
         response = self.client.post(url, homework_answer)
         self.assertEqual(response.status_code,status.HTTP_200_OK)
         # test get homework answer
-        # url = url + '/' + str(homework_answer['node_id'])
         response = self.client.get(url)
         self.assertEqual(response.status_code,status.HTTP_200_OK)
         self.assertEqual(response.data,expected_result)

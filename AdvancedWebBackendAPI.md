@@ -74,9 +74,7 @@ failure
 
 + Response 403
 
-{
-    detail:login first
-}
+{}
 
 + Response 404
 no tree
@@ -93,15 +91,7 @@ no tree
 
 + Response 403
 
-{
-    detail:user not teacher
-}
-
-+ Response 403
-
-{
-    detail:login first
-}
+{}
 
 ## Set Homework [/node/<node_id>/homework] [POST]
 
@@ -155,15 +145,8 @@ example
 
 + Response 403
 
-{
-    detail:user not teacher
-}
+{}
 
-+ Response 403
-
-{
-    detail:login first
-}
 
 ## Get Homework [/node/<node_id>/homework] [GET]
 
@@ -203,9 +186,7 @@ example
 
 + Response 403
 
-{
-    detail:login first
-}
+{}
 
 + Response 404
 
@@ -246,15 +227,7 @@ example
 
 + Response 403
 
-{
-    detail:user not student
-}
-
-+ Response 403
-
-{
-    detail:login first
-}
+{}
 
 + Response 404
 
@@ -295,15 +268,7 @@ no corresponding homework
 
 + Response 403
 
-{
-    detail:user not student
-}
-
-+ Response 403
-
-{
-    detail:login first
-}
+{}
 
 ## Get Material List of a Node [/node/<node_id>/materials] [GET]
 
@@ -333,9 +298,7 @@ no corresponding homework
 
 + Response 403
 
-{
-    detail:login first
-}
+{}
 
 + Response 404
 
@@ -361,15 +324,7 @@ no file attached
 
 + Response 403
 
-{
-    detail:user not teacher
-}
-
-+ Response 403
-
-{
-    detail:login first
-}
+{}
 
 ## Download Material [/node/<node_id>/material/<material_id>] [GET]
 
@@ -385,9 +340,7 @@ download file as attachment
 
 + Response 403
 
-{
-    detail:login first
-}
+{}
 
 + Response 404
 
