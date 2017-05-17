@@ -192,7 +192,7 @@ example
 
 {}
 
-## Get Homework Answer of a student [/homework_answer/(node_id)] [GET]
+## Get Homework Answer of a student [/node/<node_id>/homework_answer] [GET]
 
 + Request
 
@@ -233,7 +233,7 @@ example
 
 {}
 
-## Set homework answer for a student [/homework_answer] [POST]
+## Set homework answer for a student [/node/<node_id>/homework_answer] [POST]
 
 + Request
 
